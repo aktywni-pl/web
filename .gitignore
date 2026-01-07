@@ -1,0 +1,29 @@
+# Node
+node_modules/
+npm-debug.log
+pnpm-lock.yaml
+yarn.lock
+
+# Build / dist
+dist/
+build/
+*.log
+
+# Vite cache
+.vite/
+
+# Docker artefacts
+*.pid
+*.pid.lock
+
+# Editors
+.idea/
+.vscode/
+*.swp
+
+# Windows ADS metadata
+docker-compose.yml:Zone.Identifier
+
+# Env files
+.env
+.env.*
