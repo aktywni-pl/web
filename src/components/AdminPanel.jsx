@@ -149,6 +149,8 @@ export default function AdminPanel() {
               <th>Typ</th>
               <th>Dystans [km]</th>
               <th>Data</th>
+              <th>Skąd</th>
+              <th>Dokąd</th>
               <th>Akcje</th>
             </tr>
           </thead>
@@ -161,6 +163,8 @@ export default function AdminPanel() {
                 <td>{a.type}</td>
                 <td>{a.distance_km}</td>
                 <td>{new Date(a.started_at).toLocaleString()}</td>
+                <td>{a.start_place || "-"}</td>
+                <td>{a.end_place || "-"}</td>
                 <td>
                   <button onClick={() => handleDelete(a.id)}>
                     Usuń
