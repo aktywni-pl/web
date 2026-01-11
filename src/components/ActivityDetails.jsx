@@ -6,9 +6,10 @@ import L from "leaflet";
 export default function ActivityDetails() {
   const { id } = useParams();
   const [activity, setActivity] = useState(null);
-  const mapRef = useRef(null); // przechowujemy instancję mapy
+  const [trackInfo, setTrackInfo] = useState(null); // start/meta z tracka
+  const mapRef = useRef(null);
 
-  // 1. Pobieramy aktywność (bez mapy)
+  // 1) Pobieramy aktywność (bez mapy)
   useEffect(() => {
     axios
       .get("http://localhost:3000/api/activities")
@@ -21,18 +22,19 @@ export default function ActivityDetails() {
       });
   }, [id]);
 
-  // 2. Gdy aktywność jest już znana i div#map jest w DOM – inicjalizujemy mapę + track
+  // 2) Gdy aktywność jest już znana – inicjalizujemy mapę + track
   useEffect(() => {
-    // dopóki nie mamy aktywności, nie ruszamy mapy
     if (!activity) return;
 
-    // zabezpieczenie: jak mapa już była, usuwamy starą
+    // reset info o trasie przy zmianie aktywności
+    setTrackInfo(null);
+
+    // usuwamy starą mapę
     if (mapRef.current) {
       mapRef.current.remove();
       mapRef.current = null;
     }
 
-    // inicjalizacja mapy
     const map = L.map("map").setView([51.111, 17.02], 14);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -41,16 +43,19 @@ export default function ActivityDetails() {
 
     mapRef.current = map;
 
-    // pobranie śladu GPS i dorysowanie polyline
     axios
       .get(`http://localhost:3000/api/activities/${id}/track`)
       .then((trackRes) => {
-        if (!trackRes.data || !trackRes.data.points) return;
+        const points = trackRes?.data?.points || [];
+        if (!points.length) return;
 
-        const latlngs = trackRes.data.points.map((p) => [p.lat, p.lon]);
+        // START/META (skąd/dokąd)
+        const start = points[0];
+        const end = points[points.length - 1];
+        setTrackInfo({ start, end });
 
-        if (!latlngs.length) return;
-
+        // polyline na mapie
+        const latlngs = points.map((p) => [p.lat, p.lon]);
         const polyline = L.polyline(latlngs).addTo(map);
         map.fitBounds(polyline.getBounds());
       })
@@ -58,7 +63,6 @@ export default function ActivityDetails() {
         console.error("Błąd przy pobieraniu śladu GPS:", err);
       });
 
-    // sprzątanie po odmontowaniu
     return () => {
       if (mapRef.current) {
         mapRef.current.remove();
@@ -69,18 +73,57 @@ export default function ActivityDetails() {
 
   if (!activity) return <h2>Ładowanie...</h2>;
 
+  const gpxUrl = `http://localhost:3000/api/activities/${id}/export.gpx`;
+
+  const pace =
+    activity.duration_min && activity.distance_km
+      ? (Number(activity.duration_min) / Number(activity.distance_km))
+      : null;
+
+  const formatPace = (p) => {
+    const totalSeconds = Math.round(p * 60);
+    const mm = String(Math.floor(totalSeconds / 60)).padStart(2, "0");
+    const ss = String(totalSeconds % 60).padStart(2, "0");
+    return `${mm}:${ss} min/km`;
+  };
+
   return (
     <>
       <h2>Szczegóły aktywności</h2>
 
+      <p><b>Nazwa:</b> {activity.name}</p>
+      <p><b>Typ:</b> {activity.type}</p>
+      <p><b>Dystans:</b> {Number(activity.distance_km).toFixed(2)} km</p>
+      <p><b>Czas:</b> {activity.duration_min} min</p>
+      <p><b>Data startu:</b> {new Date(activity.started_at).toLocaleString()}</p>
+      {pace && <p><b>Tempo:</b> {formatPace(pace)}</p>}
+
+      {/* Skąd -> dokąd (z tracka) */}
+      {trackInfo ? (
+        <p>
+          <b>Skąd → dokąd:</b>{" "}
+          {trackInfo.start.lat.toFixed(5)},{trackInfo.start.lon.toFixed(5)}
+          {"  →  "}
+          {trackInfo.end.lat.toFixed(5)},{trackInfo.end.lon.toFixed(5)}
+        </p>
+      ) : (
+        <p><b>Skąd → dokąd:</b> (brak tracka)</p>
+      )}
+
+      {/* Eksport GPX */}
       <p>
-        <b>Nazwa:</b> {activity.name}
-      </p>
-      <p>
-        <b>Typ:</b> {activity.type}
-      </p>
-      <p>
-        <b>Dystans:</b> {activity.distance_km} km
+        <a
+          href={gpxUrl}
+          style={{
+            display: "inline-block",
+            padding: "8px 12px",
+            border: "1px solid #333",
+            textDecoration: "none",
+            marginTop: "10px",
+          }}
+        >
+          📥 Pobierz GPX
+        </a>
       </p>
 
       <div
