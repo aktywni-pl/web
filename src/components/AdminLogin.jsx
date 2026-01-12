@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 export default function AdminLogin() {
   const [email, setEmail] = useState("admin@aktywni.pl");
   const [password, setPassword] = useState("admin123");
+  const [mode, setMode] = useState("login"); // login | register
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
@@ -13,27 +14,43 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      const res = await axios.post("http://localhost:3000/api/login", {
-        email,
-        password
-      });
+      if (mode === "login") {
+        const res = await axios.post("http://localhost:3000/api/login", {
+          email,
+          password
+        });
 
-      if (res.data.role !== "admin") {
-        setError("Użytkownik nie ma roli administratora.");
-        return;
+        if (res.data.role !== "admin") {
+          setError("Użytkownik nie ma roli administratora.");
+          return;
+        }
+
+        localStorage.setItem("adminToken", res.data.token);
+        navigate("/admin");
       }
 
-      localStorage.setItem("adminToken", res.data.token);
+      if (mode === "register") {
+        await axios.post("http://localhost:3000/api/register", {
+          email,
+          password
+        });
 
-      navigate("/admin");
+        setError("Rejestracja zakończona. Możesz się zalogować.");
+        setMode("login");
+        setPassword("");
+      }
     } catch {
-      setError("Nieprawidłowy login lub hasło.");
+      setError("Błąd: nieprawidłowe dane lub konto już istnieje.");
     }
   };
 
   return (
     <>
-      <h2>Logowanie administratora</h2>
+      <h2>
+        {mode === "login"
+          ? "Logowanie administratora"
+          : "Rejestracja użytkownika"}
+      </h2>
 
       <form onSubmit={handleSubmit} style={{ maxWidth: "320px" }}>
         <div style={{ marginBottom: "10px" }}>
@@ -44,6 +61,7 @@ export default function AdminLogin() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               style={{ width: "100%" }}
+              required
             />
           </label>
         </div>
@@ -56,13 +74,35 @@ export default function AdminLogin() {
               value={password}
               onChange={e => setPassword(e.target.value)}
               style={{ width: "100%" }}
+              required
             />
           </label>
         </div>
 
-        <button type="submit">Zaloguj</button>
+        <button type="submit">
+          {mode === "login" ? "Zaloguj" : "Zarejestruj"}
+        </button>
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
+        <button
+          type="button"
+          onClick={() =>
+            setMode(mode === "login" ? "register" : "login")
+          }
+          style={{ marginLeft: "10px" }}
+        >
+          {mode === "login" ? "Rejestracja" : "Powrót"}
+        </button>
+
+        {error && (
+          <p
+            style={{
+              marginTop: "10px",
+              color: error.includes("zakończona") ? "green" : "red"
+            }}
+          >
+            {error}
+          </p>
+        )}
       </form>
     </>
   );
