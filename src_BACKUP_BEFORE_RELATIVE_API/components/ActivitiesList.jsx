@@ -8,7 +8,7 @@ export default function ActivitiesList() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get("/api/activities")
+    axios.get("http://localhost:3000/api/activities")
       .then(res => {
         setActivities(res.data);
         setLoading(false);

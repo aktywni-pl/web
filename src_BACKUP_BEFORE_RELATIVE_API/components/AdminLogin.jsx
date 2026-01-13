@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("admin@aktywni.pl");
@@ -15,7 +15,7 @@ export default function AdminLogin() {
 
     try {
       if (mode === "login") {
-        const res = await axios.post("/api/login", {
+        const res = await axios.post("http://localhost:3000/api/login", {
           email,
           password
         });
@@ -30,7 +30,7 @@ export default function AdminLogin() {
       }
 
       if (mode === "register") {
-        await axios.post("/api/register", {
+        await axios.post("http://localhost:3000/api/register", {
           email,
           password
         });
@@ -103,10 +103,6 @@ export default function AdminLogin() {
             {error}
           </p>
         )}
-        <p style={{ marginTop: "12px" }}>
-          <Link to="/forgot-password">Nie pamiętasz hasła?</Link>
-        </p>
-
       </form>
     </>
   );

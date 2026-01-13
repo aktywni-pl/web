@@ -33,17 +33,17 @@ export default function AdminPanel() {
     const headers = { Authorization: `Bearer ${token}` };
 
     axios
-      .get("/api/admin/users", { headers })
+      .get("http://localhost:3000/api/admin/users", { headers })
       .then((res) => setUsers(res.data))
       .catch(() => setError("Błąd pobierania użytkowników."));
 
     axios
-      .get("/api/admin/activities", { headers })
+      .get("http://localhost:3000/api/admin/activities", { headers })
       .then((res) => setActivities(res.data))
       .catch(() => setError("Błąd pobierania aktywności."));
 
     axios
-      .get("/api/admin/stats", { headers })
+      .get("http://localhost:3000/api/admin/stats", { headers })
       .then((res) => setStats(res.data))
       .catch(() => setError("Błąd pobierania statystyk."));
   }, []);
@@ -59,7 +59,7 @@ export default function AdminPanel() {
     if (!ok) return;
 
     try {
-      await axios.delete(`/api/admin/activities/${id}`, {
+      await axios.delete(`http://localhost:3000/api/admin/activities/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setActivities((prev) => prev.filter((a) => a.id !== id));

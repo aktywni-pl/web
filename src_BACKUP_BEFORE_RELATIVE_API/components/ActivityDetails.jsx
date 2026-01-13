@@ -12,7 +12,7 @@ export default function ActivityDetails() {
   // 1) Pobieramy aktywność (bez mapy)
   useEffect(() => {
     axios
-      .get("/api/activities")
+      .get("http://localhost:3000/api/activities")
       .then((res) => {
         const found = res.data.find((a) => String(a.id) === String(id));
         setActivity(found || null);
@@ -44,7 +44,7 @@ export default function ActivityDetails() {
     mapRef.current = map;
 
     axios
-      .get(`/api/activities/${id}/track`)
+      .get(`http://localhost:3000/api/activities/${id}/track`)
       .then((trackRes) => {
         const points = trackRes?.data?.points || [];
         if (!points.length) return;
@@ -73,7 +73,7 @@ export default function ActivityDetails() {
 
   if (!activity) return <h2>Ładowanie...</h2>;
 
-  const gpxUrl = `/api/activities/${id}/export.gpx`;
+  const gpxUrl = `http://localhost:3000/api/activities/${id}/export.gpx`;
 
   const pace =
     activity.duration_min && activity.distance_km

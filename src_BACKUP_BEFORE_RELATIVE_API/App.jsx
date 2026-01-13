@@ -3,8 +3,6 @@ import ActivitiesList from "./components/ActivitiesList.jsx";
 import ActivityDetails from "./components/ActivityDetails.jsx";
 import AdminLogin from "./components/AdminLogin.jsx";
 import AdminPanel from "./components/AdminPanel.jsx";
-import ForgotPassword from "./components/ForgotPassword.jsx";
-import ResetPassword from "./components/ResetPassword.jsx";
 
 export default function App() {
   return (
@@ -61,8 +59,6 @@ export default function App() {
             <Route path="/activity/:id" element={<ActivityDetails />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminPanel />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
           </Routes>
         </div>
 
