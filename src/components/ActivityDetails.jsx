@@ -9,6 +9,20 @@ export default function ActivityDetails() {
   const [trackInfo, setTrackInfo] = useState(null); // start/meta z tracka
   const mapRef = useRef(null);
 
+  const formatDurationFromDecimalMinutes = (minDecimal) => {
+    if (minDecimal === null || minDecimal === undefined || minDecimal === "") return "-";
+    const totalSeconds = Math.round(Number(minDecimal) * 60);
+
+    const hh = Math.floor(totalSeconds / 3600);
+    const mm = Math.floor((totalSeconds % 3600) / 60);
+    const ss = totalSeconds % 60;
+
+    if (hh > 0) {
+      return `${hh}:${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+    }
+    return `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
+  };
+
   // 1) Pobieramy aktywność (bez mapy)
   useEffect(() => {
     axios
@@ -77,7 +91,7 @@ export default function ActivityDetails() {
 
   const pace =
     activity.duration_min && activity.distance_km
-      ? (Number(activity.duration_min) / Number(activity.distance_km))
+      ? Number(activity.duration_min) / Number(activity.distance_km)
       : null;
 
   const formatPace = (p) => {
@@ -91,12 +105,30 @@ export default function ActivityDetails() {
     <>
       <h2>Szczegóły aktywności</h2>
 
-      <p><b>Nazwa:</b> {activity.name}</p>
-      <p><b>Typ:</b> {activity.type}</p>
-      <p><b>Dystans:</b> {Number(activity.distance_km).toFixed(2)} km</p>
-      <p><b>Czas:</b> {activity.duration_min} min</p>
-      <p><b>Data startu:</b> {new Date(activity.started_at).toLocaleString()}</p>
-      {pace && <p><b>Tempo:</b> {formatPace(pace)}</p>}
+      <p>
+        <b>Nazwa:</b> {activity.name}
+      </p>
+      <p>
+        <b>Typ:</b> {activity.type}
+      </p>
+      <p>
+        <b>Dystans:</b> {Number(activity.distance_km).toFixed(2)} km
+      </p>
+
+      {/* POPRAWIONE: minuty dziesiętne -> mm:ss */}
+      <p>
+        <b>Czas:</b> {formatDurationFromDecimalMinutes(activity.duration_min)}
+      </p>
+
+      <p>
+        <b>Data startu:</b> {new Date(activity.started_at).toLocaleString()}
+      </p>
+
+      {pace && (
+        <p>
+          <b>Tempo:</b> {formatPace(pace)}
+        </p>
+      )}
 
       {/* Skąd -> dokąd (z tracka) */}
       {trackInfo ? (
@@ -107,7 +139,9 @@ export default function ActivityDetails() {
           {trackInfo.end.lat.toFixed(5)},{trackInfo.end.lon.toFixed(5)}
         </p>
       ) : (
-        <p><b>Skąd → dokąd:</b> (brak tracka)</p>
+        <p>
+          <b>Skąd → dokąd:</b> (brak tracka)
+        </p>
       )}
 
       {/* Eksport GPX */}

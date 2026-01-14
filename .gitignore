@@ -15,3 +15,9 @@ build/
 
 # Backup files
 *.bak
+
+# Local copies / backups
+.env*
+* copy*.jsx
+* copy*.conf
+src_BACKUP_*
