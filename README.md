@@ -1,16 +1,77 @@
-# React + Vite
+# Aktywni.pl – Web (Frontend) 🇵🇱
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Frontend aplikacji **Aktywni.pl** – systemu monitorowania aktywności fizycznej.  
+Aplikacja webowa umożliwia logowanie administratora, rejestrację użytkownika oraz obsługę resetu hasła (tryb demo bez wysyłki maila).
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Technologie
 
-## React Compiler
+- React (Vite)
+- React Router
+- Axios
+- Docker (uruchamianie jako kontener `web`)
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+---
 
-## Expanding the ESLint configuration
+## Funkcjonalności
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Autoryzacja i konta
+- Logowanie (`/api/login`)
+- Rejestracja użytkownika (`/api/register`)
+  - formularz z potwierdzeniem hasła
+- Reset hasła:
+  - generowanie tokenu resetu (`/api/password/forgot`)
+  - ustawienie nowego hasła (`/api/password/reset`)
+
+## API (Backend)
+
+Frontend komunikuje się z backendem przez endpointy:
+
+- `POST /api/login`
+- `POST /api/register`
+- `POST /api/password/forgot`
+- `POST /api/password/reset`
+
+Backend powinien działać na porcie `3000`.
+
+---
+
+---
+
+# Aktywni.pl – Web (Frontend) 🇬🇧
+
+Frontend for **Aktywni.pl** – a physical activity monitoring system.  
+The web application supports admin login, user registration, and password reset flow (demo mode without sending emails).
+
+---
+
+## Tech Stack
+
+- React (Vite)
+- React Router
+- Axios
+- Docker (runs as the `web` container)
+
+---
+
+## Features
+
+### Authentication & Accounts
+- Login (`/api/login`)
+- User registration (`/api/register`)
+  - registration form includes password confirmation
+- Password reset:
+  - generate reset token (`/api/password/forgot`)
+  - set a new password (`/api/password/reset`)
+
+## API (Backend)
+
+The frontend communicates with the backend using:
+
+- `POST /api/login`
+- `POST /api/register`
+- `POST /api/password/forgot`
+- `POST /api/password/reset`
+
+Backend should be running on port `3000`.
