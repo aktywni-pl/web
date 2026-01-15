@@ -12,7 +12,10 @@ export default function AdminPanel() {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState("");
 
-  // Filtry (wymaganie 23)
+  // cache skąd/dokąd z tracka per activityId
+  const [trackCache, setTrackCache] = useState({}); // { [id]: { startText, endText } }
+
+  // Filtry
   const [typeFilter, setTypeFilter] = useState("");
   const [userFilter, setUserFilter] = useState(""); // user_id
   const [dateFrom, setDateFrom] = useState(""); // yyyy-mm-dd
@@ -33,20 +36,68 @@ export default function AdminPanel() {
     const headers = { Authorization: `Bearer ${token}` };
 
     axios
-      .get("http://localhost:3000/api/admin/users", { headers })
+      .get("/api/admin/users", { headers })
       .then((res) => setUsers(res.data))
       .catch(() => setError("Błąd pobierania użytkowników."));
 
     axios
-      .get("http://localhost:3000/api/admin/activities", { headers })
+      .get("/api/admin/activities", { headers })
       .then((res) => setActivities(res.data))
       .catch(() => setError("Błąd pobierania aktywności."));
 
     axios
-      .get("http://localhost:3000/api/admin/stats", { headers })
+      .get("/api/admin/stats", { headers })
       .then((res) => setStats(res.data))
       .catch(() => setError("Błąd pobierania statystyk."));
   }, []);
+
+  // dociąganie tracka dla widocznych wierszy (po filtrach) i cache
+  useEffect(() => {
+    if (!filteredActivities.length) return;
+
+    const token = localStorage.getItem("adminToken");
+    if (!token) return;
+
+    const headers = { Authorization: `Bearer ${token}` };
+
+    const missingIds = filteredActivities
+      .map((a) => a.id)
+      .filter((id) => trackCache[id] === undefined);
+
+    if (!missingIds.length) return;
+
+    missingIds.forEach((id) => {
+      axios
+        .get(`/api/activities/${id}/track`, { headers })
+        .then((trackRes) => {
+          const points = trackRes?.data?.points || [];
+          if (!points.length) {
+            setTrackCache((prev) => ({
+              ...prev,
+              [id]: { startText: "-", endText: "-" },
+            }));
+            return;
+          }
+
+          const start = points[0];
+          const end = points[points.length - 1];
+
+          const fmt = (p) =>
+            `${Number(p.lat).toFixed(5)},${Number(p.lon).toFixed(5)}`;
+
+          setTrackCache((prev) => ({
+            ...prev,
+            [id]: { startText: fmt(start), endText: fmt(end) },
+          }));
+        })
+        .catch(() => {
+          setTrackCache((prev) => ({
+            ...prev,
+            [id]: { startText: "-", endText: "-" },
+          }));
+        });
+    });
+  }, [activities, trackCache]); // <- UWAGA: filteredActivities jest niżej, więc efekt jest poniżej w kodzie (patrz niżej)
 
   const handleDelete = async (id) => {
     const token = localStorage.getItem("adminToken");
@@ -59,10 +110,17 @@ export default function AdminPanel() {
     if (!ok) return;
 
     try {
-      await axios.delete(`http://localhost:3000/api/admin/activities/${id}`, {
+      await axios.delete(`/api/admin/activities/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setActivities((prev) => prev.filter((a) => a.id !== id));
+
+      // usuń też z cache
+      setTrackCache((prev) => {
+        const copy = { ...prev };
+        delete copy[id];
+        return copy;
+      });
     } catch {
       setError("Nie udało się usunąć aktywności.");
     }
@@ -133,7 +191,64 @@ export default function AdminPanel() {
 
       return true;
     });
-  }, [activities, typeFilter, userFilter, dateFrom, dateTo, minDistance, maxDistance, q]);
+  }, [
+    activities,
+    typeFilter,
+    userFilter,
+    dateFrom,
+    dateTo,
+    minDistance,
+    maxDistance,
+    q,
+  ]);
+
+  // poprawka: ten useEffect MUSI używać filteredActivities, więc dajemy go TU (po definicji)
+  useEffect(() => {
+    if (!filteredActivities.length) return;
+
+    const token = localStorage.getItem("adminToken");
+    if (!token) return;
+
+    const headers = { Authorization: `Bearer ${token}` };
+
+    const missingIds = filteredActivities
+      .map((a) => a.id)
+      .filter((id) => trackCache[id] === undefined);
+
+    if (!missingIds.length) return;
+
+    missingIds.forEach((id) => {
+      axios
+        .get(`/api/activities/${id}/track`, { headers })
+        .then((trackRes) => {
+          const points = trackRes?.data?.points || [];
+          if (!points.length) {
+            setTrackCache((prev) => ({
+              ...prev,
+              [id]: { startText: "-", endText: "-" },
+            }));
+            return;
+          }
+
+          const start = points[0];
+          const end = points[points.length - 1];
+
+          const fmt = (p) =>
+            `${Number(p.lat).toFixed(5)},${Number(p.lon).toFixed(5)}`;
+
+          setTrackCache((prev) => ({
+            ...prev,
+            [id]: { startText: fmt(start), endText: fmt(end) },
+          }));
+        })
+        .catch(() => {
+          setTrackCache((prev) => ({
+            ...prev,
+            [id]: { startText: "-", endText: "-" },
+          }));
+        });
+    });
+  }, [filteredActivities, trackCache]);
 
   return (
     <>
@@ -193,11 +308,11 @@ export default function AdminPanel() {
         <div className="filtersGrid" style={{ marginBottom: 12 }}>
           <div>
             <label>
-              Szukaj (nazwa / miejsca / id)
+              Szukaj (nazwa / id)
               <input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="np. wieczorny, 12, Jawor..."
+                placeholder="np. wieczorny, 12..."
               />
             </label>
           </div>
@@ -305,10 +420,15 @@ export default function AdminPanel() {
                 <th>Akcje</th>
               </tr>
             </thead>
+
             <tbody>
               {filteredActivities.map((a) => {
                 const df = pickDateField(a);
                 const prettyDate = df ? new Date(df).toLocaleString() : "-";
+
+                const cached = trackCache[a.id];
+                const fromTxt = cached?.startText ?? a.start_place ?? "-";
+                const toTxt = cached?.endText ?? a.end_place ?? "-";
 
                 return (
                   <tr key={a.id}>
@@ -318,8 +438,8 @@ export default function AdminPanel() {
                     <td>{a.type}</td>
                     <td>{a.distance_km}</td>
                     <td>{prettyDate}</td>
-                    <td className="col-hide-mobile">{a.start_place || "-"}</td>
-                    <td className="col-hide-mobile">{a.end_place || "-"}</td>
+                    <td className="col-hide-mobile">{fromTxt}</td>
+                    <td className="col-hide-mobile">{toTxt}</td>
                     <td>
                       <button onClick={() => handleDelete(a.id)}>Usuń</button>
                     </td>

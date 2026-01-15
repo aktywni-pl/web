@@ -1,11 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("admin@aktywni.pl");
   const [password, setPassword] = useState("admin123");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [mode, setMode] = useState("login"); // login | register
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -16,9 +15,9 @@ export default function AdminLogin() {
 
     try {
       if (mode === "login") {
-        const res = await axios.post("/api/login", {
+        const res = await axios.post("http://localhost:3000/api/login", {
           email,
-          password,
+          password
         });
 
         if (res.data.role !== "admin") {
@@ -28,44 +27,21 @@ export default function AdminLogin() {
 
         localStorage.setItem("adminToken", res.data.token);
         navigate("/admin");
-        return;
       }
 
       if (mode === "register") {
-        // prosta walidacja po stronie frontu
-        if (password.length < 8) {
-          setError("Hasło musi mieć co najmniej 8 znaków.");
-          return;
-        }
-
-        if (password !== confirmPassword) {
-          setError("Hasła nie są takie same.");
-          return;
-        }
-
-        await axios.post("/api/register", {
+        await axios.post("http://localhost:3000/api/register", {
           email,
-          password,
-          confirmPassword,
+          password
         });
 
         setError("Rejestracja zakończona. Możesz się zalogować.");
         setMode("login");
         setPassword("");
-        setConfirmPassword("");
-        return;
       }
     } catch {
       setError("Błąd: nieprawidłowe dane lub konto już istnieje.");
     }
-  };
-
-  const toggleMode = () => {
-    const nextMode = mode === "login" ? "register" : "login";
-    setMode(nextMode);
-    setError("");
-    setPassword("");
-    setConfirmPassword("");
   };
 
   return (
@@ -83,7 +59,7 @@ export default function AdminLogin() {
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={e => setEmail(e.target.value)}
               style={{ width: "100%" }}
               required
             />
@@ -96,27 +72,12 @@ export default function AdminLogin() {
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
               style={{ width: "100%" }}
               required
             />
           </label>
         </div>
-
-        {mode === "register" && (
-          <div style={{ marginBottom: "10px" }}>
-            <label>
-              Potwierdź hasło
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                style={{ width: "100%" }}
-                required
-              />
-            </label>
-          </div>
-        )}
 
         <button type="submit">
           {mode === "login" ? "Zaloguj" : "Zarejestruj"}
@@ -124,7 +85,9 @@ export default function AdminLogin() {
 
         <button
           type="button"
-          onClick={toggleMode}
+          onClick={() =>
+            setMode(mode === "login" ? "register" : "login")
+          }
           style={{ marginLeft: "10px" }}
         >
           {mode === "login" ? "Rejestracja" : "Powrót"}
@@ -134,16 +97,12 @@ export default function AdminLogin() {
           <p
             style={{
               marginTop: "10px",
-              color: error.includes("zakończona") ? "green" : "red",
+              color: error.includes("zakończona") ? "green" : "red"
             }}
           >
             {error}
           </p>
         )}
-
-        <p style={{ marginTop: "12px" }}>
-          <Link to="/forgot-password">Nie pamiętasz hasła?</Link>
-        </p>
       </form>
     </>
   );
