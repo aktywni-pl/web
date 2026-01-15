@@ -70,7 +70,7 @@ button {
 button:hover {
   background: rgba(15, 23, 42, 0.04);
 }
-/* --- Responsive helpers --- */
+
 .tableWrap {
   width: 100%;
   overflow-x: auto;
@@ -80,12 +80,10 @@ button:hover {
   background: #fff;
 }
 
-/* niech tabela nie łamie się dziwnie przy wielu kolumnach */
 .tableWrap table {
   min-width: 780px;
 }
 
-/* formularze/filtry: inputy na 100% */
 input, select {
   width: 100%;
   padding: 8px 10px;
@@ -93,7 +91,6 @@ input, select {
   border: 1px solid rgba(15,23,42,.16);
 }
 
-/* --- Responsive helpers --- */
 .tableWrap {
   width: 100%;
   overflow-x: auto;
@@ -103,12 +100,10 @@ input, select {
   background: #fff;
 }
 
-/* niech tabela nie łamie się dziwnie przy wielu kolumnach */
 .tableWrap table {
   min-width: 780px;
 }
 
-/* formularze/filtry: inputy na 100% */
 input, select {
   width: 100%;
   padding: 8px 10px;
@@ -116,9 +111,7 @@ input, select {
   border: 1px solid rgba(15,23,42,.16);
 }
 
-/* ===== Responsive fixes (admin + tables) ===== */
 
-/* Wrapper: tabela nie może rozwalać całej strony */
 .tableWrap{
   width: 100%;
   overflow-x: auto;
@@ -128,18 +121,15 @@ input, select {
   background: #fff;
 }
 
-/* dużo kolumn -> niech tabela ma swoją szerokość i przewija się w wrapperze */
 .tableWrap table{
   min-width: 900px;
 }
 
-/* Form controls: równa szerokość, nie ściska się dziwnie */
 input, select{
   width: 100%;
   max-width: 100%;
 }
 
-/* Na małych ekranach zmniejszamy paddingi/teksty */
 @media (max-width: 900px){
   #root{ padding: 12px; }
   th, td{ padding: 8px 10px; font-size: 13px; }

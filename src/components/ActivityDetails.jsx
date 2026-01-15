@@ -6,7 +6,7 @@ import L from "leaflet";
 export default function ActivityDetails() {
   const { id } = useParams();
   const [activity, setActivity] = useState(null);
-  const [trackInfo, setTrackInfo] = useState(null); // start/meta z tracka
+  const [trackInfo, setTrackInfo] = useState(null);
   const mapRef = useRef(null);
 
   const formatDurationFromDecimalMinutes = (minDecimal) => {
@@ -23,7 +23,6 @@ export default function ActivityDetails() {
     return `${String(mm).padStart(2, "0")}:${String(ss).padStart(2, "0")}`;
   };
 
-  // 1) Pobieramy aktywność (bez mapy)
   useEffect(() => {
     axios
       .get("/api/activities")
@@ -36,14 +35,11 @@ export default function ActivityDetails() {
       });
   }, [id]);
 
-  // 2) Gdy aktywność jest już znana – inicjalizujemy mapę + track
   useEffect(() => {
     if (!activity) return;
 
-    // reset info o trasie przy zmianie aktywności
     setTrackInfo(null);
-
-    // usuwamy starą mapę
+ // Leaflet wymaga ręcznego usuwania instancji mapy przy zmianie aktywności
     if (mapRef.current) {
       mapRef.current.remove();
       mapRef.current = null;
@@ -63,12 +59,10 @@ export default function ActivityDetails() {
         const points = trackRes?.data?.points || [];
         if (!points.length) return;
 
-        // START/META (skąd/dokąd)
         const start = points[0];
         const end = points[points.length - 1];
         setTrackInfo({ start, end });
 
-        // polyline na mapie
         const latlngs = points.map((p) => [p.lat, p.lon]);
         const polyline = L.polyline(latlngs).addTo(map);
         map.fitBounds(polyline.getBounds());

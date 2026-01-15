@@ -13,7 +13,7 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      const res = await axios.post("http://localhost:3000/api/login", {
+      const res = await axios.post("/api/login", {
         email,
         password
       });
