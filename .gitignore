@@ -21,3 +21,7 @@ build/
 * copy*.jsx
 * copy*.conf
 src_BACKUP_*
+
+# ignore copy files
+* copy.*
+* copy*.*
